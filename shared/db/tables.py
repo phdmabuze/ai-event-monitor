@@ -6,6 +6,7 @@ from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from shared.db import Base
+from shared.models.events import AnalysisCompleted
 
 
 class AnalysisResult(Base):
@@ -18,3 +19,14 @@ class AnalysisResult(Base):
     matched: Mapped[bool]
     reason: Mapped[str] = mapped_column(Text)
     analyzed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    @classmethod
+    def from_event(cls, event: AnalysisCompleted) -> "AnalysisResult":
+        return cls(
+            event_id=event.event_id,
+            source=event.source,
+            text=event.text,
+            matched=event.matched,
+            reason=event.reason,
+            analyzed_at=event.analyzed_at,
+        )
