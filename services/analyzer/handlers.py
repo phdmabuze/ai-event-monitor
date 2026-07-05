@@ -3,7 +3,7 @@ from shared.kafka import broker, Topic
 from shared.models.events import AnalysisCompleted, MessageReceived
 
 
-@broker.subscriber(Topic.MESSAGES_RECEIVED)
+@broker.subscriber(Topic.MESSAGES_RECEIVED, group_id="analyzer")
 @broker.publisher(Topic.ANALYSIS_COMPLETED)
 async def analyze(message: MessageReceived) -> AnalysisCompleted:
     print(f"Analyzing message: {message.text}")
