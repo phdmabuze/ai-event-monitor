@@ -14,9 +14,7 @@ async def get_analysis_results(
     session: AsyncSession = Depends(get_session),
 ) -> list[AnalysisResult]:
     result = await session.execute(
-        select(AnalysisResult).order_by(
-            AnalysisResult.analyzed_at.desc()
-        )
+        select(AnalysisResult).order_by(AnalysisResult.analyzed_at.desc())
     )
 
     return list(result.scalars())

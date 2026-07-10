@@ -31,9 +31,7 @@ async def main() -> None:
         existing_topics = await admin.list_topics()
 
         topics_to_create = [
-            topic
-            for topic in TOPICS
-            if topic.name not in existing_topics
+            topic for topic in TOPICS if topic.name not in existing_topics
         ]
 
         if not topics_to_create:

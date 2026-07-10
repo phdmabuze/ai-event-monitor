@@ -14,5 +14,5 @@ async def analyze(message: MessageReceived) -> AnalysisCompleted:
         text=message.text,
         matched=True,
         reason="Stub",
-        analyzed_at=datetime.now(UTC)
-        )
+        analyzed_at=datetime.now(UTC),
+    )

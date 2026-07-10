@@ -15,6 +15,7 @@ class AnalysisResultResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class SendMessageRequest(BaseModel):
     source: str
     text: str
