@@ -59,7 +59,31 @@ services:
 
     volumes:
       - postgres-data:/var/lib/postgresql/data
+  
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+
+    ports:
+      - "11434:11434"
+
+    volumes:
+      - ollama-data:/root/.ollama
+
+  ollama-init:
+    image: ollama/ollama:latest
+    depends_on:
+      - ollama
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_MODEL: qwen3:8b
+    volumes:
+      - ./docker/ollama/init-model.sh:/init-model.sh:ro
+    entrypoint: 
+      - /bin/sh
+      - /init-model.sh
 
 volumes:
   kafka-data:
   postgres-data:
+  ollama-data:

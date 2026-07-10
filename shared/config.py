@@ -11,6 +11,9 @@ class Settings(BaseSettings):
 
     kafka_bootstrap_servers: str
 
+    ollama_url: str = "http://localhost:11434"
+    ollama_model: str = "qwen3:8b"
+
     @computed_field
     @property
     def postgres_url(self) -> str:
