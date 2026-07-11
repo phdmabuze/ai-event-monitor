@@ -1,16 +1,7 @@
 CRITERIA = """
-Find messages matching any of these criteria:
+Match messages related to:
 
-1. Python backend opportunities:
-- job offers
-- freelance projects
-- FastAPI, Django, PostgreSQL
-- remote backend work
-
-2. Open source opportunities:
-- interesting Python projects
-- collaboration requests
-
-3. TON ecosystem:
-- TON, DeFi, blockchain related news or projects
+- Python backend: jobs, freelance, FastAPI/Django/PostgreSQL, remote work.
+- Open source: Python projects and collaboration opportunities.
+- TON ecosystem: TON, DeFi, blockchain projects and news.
 """
