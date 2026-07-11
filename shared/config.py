@@ -11,8 +11,8 @@ class Settings(BaseSettings):
 
     kafka_bootstrap_servers: str
 
-    ollama_url: str = "http://localhost:11434"
-    ollama_model: str = "qwen3:8b"
+    ollama_url: str
+    ollama_model: str
 
     @computed_field
     @property

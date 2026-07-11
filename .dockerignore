@@ -1,0 +1,53 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+
+# Coverage
+.coverage
+htmlcov/
+
+# IDE
+.idea/
+.vscode/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Local environment
+.env
+
+# Docker
+docker-compose.override.yml
+
+# Documentation
+LICENSE
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Python type checker
+.pyre/
+
+# Jupyter
+.ipynb_checkpoints/

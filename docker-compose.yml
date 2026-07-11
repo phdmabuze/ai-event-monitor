@@ -3,70 +3,85 @@ services:
     image: apache/kafka:4.3.1
     container_name: kafka
     hostname: kafka
-
     ports:
       - "${KAFKA_EXTERNAL_PORT}:9092"
-
     environment:
       CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
-
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: "broker,controller"
-
       KAFKA_LISTENERS: "PLAINTEXT://:9092,INTERNAL://:29092,CONTROLLER://:9093"
       KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:${KAFKA_EXTERNAL_PORT},INTERNAL://kafka:29092"
-
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT"
-
       KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
-
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-
     volumes:
       - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/9092'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   kafbat-ui:
     image: ghcr.io/kafbat/kafka-ui:v1.3.0
     container_name: kafbat-ui
-
     depends_on:
       - kafka
-
     ports:
       - "${KAFBAT_PORT}:8080"
-
     environment:
       DYNAMIC_CONFIG_ENABLED: "true"
-
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
 
   postgres:
     image: postgres:17
     container_name: postgres
-
     ports:
       - "${POSTGRES_PORT}:5432"
-
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build: .
+    command: >
+      alembic upgrade head
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
   
+  topics-init:
+    build: .
+    command: >
+      python -m scripts.create_topics
+    env_file:
+      - .env
+    depends_on:
+      kafka:
+        condition: service_healthy
+    restart: "no"
+
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
-
     ports:
       - "11434:11434"
-
     volumes:
       - ollama-data:/root/.ollama
 
@@ -82,6 +97,53 @@ services:
     entrypoint: 
       - /bin/sh
       - /init-model.sh
+    restart: "no"
+
+  api:
+    build: .
+    container_name: api
+    command: >
+      uvicorn services.api.main:app
+      --host 0.0.0.0
+      --port 8000
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      topics-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  analyzer:
+    build: .
+    container_name: analyzer
+    command: >
+      faststream run services.analyzer.app:app
+    env_file:
+      - .env
+    depends_on:
+      ollama-init:
+        condition: service_completed_successfully
+      topics-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  history:
+    build: .
+    container_name: history
+    command: >
+      faststream run services.history.app:app
+    env_file:
+      - .env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      topics-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
 
 volumes:
   kafka-data:
