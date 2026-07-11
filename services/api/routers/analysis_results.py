@@ -4,9 +4,10 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from services.api.deps import get_session
-from services.api.schemas import AnalysisResultResponse
 from shared.db.tables import AnalysisResult
+
+from ..deps import get_session
+from ..schemas import AnalysisResultResponse
 
 router = APIRouter(prefix="/analysis-results", tags=["analysis-results"])
 
@@ -16,7 +17,7 @@ async def get_analysis_results(
     session: AsyncSession = Depends(get_session),
     matched: Annotated[bool | None, Query()] = None,
 ) -> list[AnalysisResult]:
-    query = select(AnalysisResult)
+    query = select(AnalysisResult).order_by(AnalysisResult.analyzed_at.desc())
 
     if matched is not None:
         query = query.where(AnalysisResult.matched == matched)

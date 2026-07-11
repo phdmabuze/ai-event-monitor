@@ -3,9 +3,10 @@ from uuid import uuid4
 
 from fastapi import APIRouter, status
 
-from services.api.schemas import SendMessageRequest
-from shared.models.events import MessageReceived
 from shared.kafka import Topic, broker
+from shared.models.events import MessageReceived
+
+from ..schemas import SendMessageRequest
 
 router = APIRouter(
     prefix="/messages",
