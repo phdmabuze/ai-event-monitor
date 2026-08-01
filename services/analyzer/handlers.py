@@ -1,12 +1,18 @@
 from datetime import UTC, datetime
 
+from faststream import AckPolicy
+
 from shared.kafka import Topic, broker
 from shared.models.events import AnalysisCompleted, MessageReceived
 
 from .llm import analyze
 
 
-@broker.subscriber(Topic.MESSAGES_RECEIVED, group_id="analyzer")
+@broker.subscriber(
+    Topic.MESSAGES_RECEIVED,
+    group_id="analyzer",
+    ack_policy=AckPolicy.REJECT_ON_ERROR,
+)
 @broker.publisher(Topic.ANALYSIS_COMPLETED)
 async def handle_message(message: MessageReceived) -> AnalysisCompleted:
     print(f"Analyzing message (event_id={message.event_id}): {message.text:<50}")
