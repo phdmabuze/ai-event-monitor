@@ -15,12 +15,12 @@ router = APIRouter(prefix="/analysis-results", tags=["analysis-results"])
 @router.get("", response_model=list[AnalysisResultResponse])
 async def get_analysis_results(
     session: AsyncSession = Depends(get_session),
-    matched: Annotated[bool | None, Query()] = None,
+    criteria_ids: Annotated[list[int] | None, Query()] = None,
 ) -> list[AnalysisResult]:
     query = select(AnalysisResult).order_by(AnalysisResult.analyzed_at.desc())
 
-    if matched is not None:
-        query = query.where(AnalysisResult.matched == matched)
+    if criteria_ids is not None:
+        query = query.where(AnalysisResult.criterion_id.in_(criteria_ids))
 
     result = await session.execute(query)
 

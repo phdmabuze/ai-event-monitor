@@ -2,8 +2,8 @@ from pydantic import BaseModel, Field
 
 
 class LLMResult(BaseModel):
-    matched: bool = Field(
+    criterion_id: int | None = Field(
         ...,
-        description="Whether the message matches the user's criteria.",
+        description="The id of the matching criterion, or null if none match.",
     )
     reason: str = Field(..., description="A short explanation of the decision.")

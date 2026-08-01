@@ -16,6 +16,8 @@ class AnalysisCompleted(BaseModel):
     event_id: UUID
     source: str
     text: str
-    matched: bool
+    criterion_id: int | None
+    criterion_name: str | None
+    criterion_description: str | None
     reason: str
     analyzed_at: datetime

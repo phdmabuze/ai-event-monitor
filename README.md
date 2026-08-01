@@ -21,36 +21,36 @@ AI Event Monitor is an event-driven system for filtering incoming messages using
 
 ## How It Works
 
-1. A filtering criterion is configured for incoming messages (currently defined in `services/analyzer/criteria.py`):
+1. Filtering criteria are managed through the REST API (`POST/GET/PATCH/DELETE /api/criteria`) and stored in PostgreSQL — each criterion has a `name` and `description`, and can be deactivated (`is_active=false`) without deleting past results tied to it. Example:
 
-```text
-Match messages related to:
-
-- Python backend: jobs, freelance, FastAPI/Django/PostgreSQL, remote work.
-- Open source: Python projects and collaboration opportunities.
-- TON ecosystem: TON, DeFi, blockchain projects and news.
+```json
+{"name": "Python backend", "description": "Jobs, freelance, FastAPI/Django/PostgreSQL, remote work."}
 ```
 
 2. External services send messages from different sources through a unified REST API endpoint (`POST /api/messages`). The API publishes incoming messages to Kafka for asynchronous processing.
 
-3. The **Analyzer service** consumes messages from Kafka and evaluates them against the configured criteria using a local LLM.
+3. The **Analyzer service** consumes messages from Kafka, loads the currently active criteria from PostgreSQL, and asks the LLM which single criterion (if any) the message best matches.
 
-4. Analysis results are published back to Kafka. The **History service** consumes completed analysis events and stores them in PostgreSQL.
+4. Analysis results are published back to Kafka. The **History service** consumes completed analysis events and stores them in PostgreSQL, along with a snapshot of the matched criterion's name/description at the time of the match (so later edits or deletions of a criterion don't rewrite history).
 
-5. Users can retrieve processed messages and their analysis results through the REST API endpoint (`GET /api/analysis-results`):
+5. Users can retrieve processed messages and their analysis results through the REST API endpoint (`GET /api/analysis-results`, optionally filtered by `criteria_ids`):
 ```json
 [
   {
     "source": "telegram",
     "text": "Hiring: Python Backend Developer (FastAPI, PostgreSQL). Remote position. Experience with async Python required.",
-    "matched": true,
-    "reason": "The message matches the Python backend criteria as it describes a remote Python developer position requiring FastAPI and PostgreSQL experience."
+    "criterion_id": 1,
+    "criterion_name": "Python backend",
+    "criterion_description": "Jobs, freelance, FastAPI/Django/PostgreSQL, remote work.",
+    "reason": "The message describes a remote Python developer position requiring FastAPI and PostgreSQL experience."
   },
   {
     "source": "telegram",
     "text": "Looking for a Frontend Developer to join our team. Strong experience with React, TypeScript, and modern UI development is required.",
-    "matched": false,
-    "reason": "The message is related to frontend development and does not match the configured criteria for Python backend jobs, open source projects, or TON ecosystem opportunities."
+    "criterion_id": null,
+    "criterion_name": null,
+    "criterion_description": null,
+    "reason": "The message is about frontend development and doesn't match any of the configured criteria."
   }
 ]
 ```

@@ -1,11 +1,11 @@
-from pydantic_ai import Agent
+from pydantic_ai import Agent, ModelRetry, RunContext
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.openai import OpenAIProvider
 
 from shared.config import settings
+from shared.db.tables import Criterion
 
-from .criteria import CRITERIA
-from .prompts import ANALYSIS_PROMPT, SYSTEM_PROMPT
+from .prompts import ANALYSIS_PROMPT, CRITERION_LINE, SYSTEM_PROMPT
 from .schemas import LLMResult
 
 if settings.llm_base_url:
@@ -27,14 +27,29 @@ agent = Agent(
     model=model,
     system_prompt=SYSTEM_PROMPT,
     output_type=LLMResult,
+    deps_type=frozenset[int],
 )
 
 
-async def analyze(text: str) -> LLMResult:
-    result = await agent.run(
-        ANALYSIS_PROMPT.format(
-            criteria=CRITERIA,
-            text=text,
+@agent.output_validator
+def validate_criterion_id(
+    ctx: RunContext[frozenset[int]], data: LLMResult
+) -> LLMResult:
+    if data.criterion_id is not None and data.criterion_id not in ctx.deps:
+        raise ModelRetry(
+            f"criterion_id must be one of {sorted(ctx.deps)} or null, "
+            f"got {data.criterion_id}"
         )
+    return data
+
+
+async def analyze(text: str, criteria: list[Criterion]) -> LLMResult:
+    criteria_block = "\n".join(
+        CRITERION_LINE.format(id=c.id, name=c.name, description=c.description)
+        for c in criteria
+    )
+    result = await agent.run(
+        ANALYSIS_PROMPT.format(criteria=criteria_block, text=text),
+        deps=frozenset(c.id for c in criteria),
     )
     return result.output
