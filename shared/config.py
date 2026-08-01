@@ -11,8 +11,10 @@ class Settings(BaseSettings):
 
     kafka_bootstrap_servers: str
 
-    ollama_url: str
-    ollama_model: str
+    llm_provider: str
+    llm_model: str
+    llm_api_key: str | None = None
+    llm_base_url: str | None = None
 
     @computed_field
     @property

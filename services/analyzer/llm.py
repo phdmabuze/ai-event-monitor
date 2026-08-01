@@ -8,13 +8,19 @@ from .criteria import CRITERIA
 from .prompts import ANALYSIS_PROMPT, SYSTEM_PROMPT
 from .schemas import LLMResult
 
-model = OpenAIChatModel(
-    model_name=settings.ollama_model,
-    provider=OpenAIProvider(
-        base_url=f"{settings.ollama_url}/v1",
-        api_key="ollama",
-    ),
-)
+if settings.llm_base_url:
+    # Self-hosted OpenAI-compatible endpoint (e.g. Ollama, LM Studio).
+    model = OpenAIChatModel(
+        model_name=settings.llm_model,
+        provider=OpenAIProvider(
+            base_url=settings.llm_base_url,
+            api_key=settings.llm_api_key or "not-needed",
+        ),
+    )
+else:
+    # Hosted provider (openai, anthropic, ...); API key is read from its
+    # standard env var (OPENAI_API_KEY, ANTHROPIC_API_KEY, ...).
+    model = f"{settings.llm_provider}:{settings.llm_model}"
 
 
 agent = Agent(

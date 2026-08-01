@@ -1,5 +1,5 @@
 # AI Event Monitor
-AI Event Monitor is an event-driven system for filtering incoming messages using a local LLM. It can be used to automatically detect messages matching user-defined criteria (for example, Python backend job opportunities) from external sources such as Telegram channels or other message streams.
+AI Event Monitor is an event-driven system for filtering incoming messages using an LLM. It can be used to automatically detect messages matching user-defined criteria (for example, Python backend job opportunities) from external sources such as Telegram channels or other message streams.
 
 *This project was created to demonstrate modern backend architecture patterns, asynchronous processing, and local LLM integration.*
 
@@ -7,7 +7,7 @@ AI Event Monitor is an event-driven system for filtering incoming messages using
 
 - Receive messages through a REST API
 - Asynchronously process messages using Kafka
-- Classify messages with a local LLM
+- Classify messages with an LLM, provider configurable via `.env` (Anthropic, OpenAI, or any self-hosted OpenAI-compatible endpoint such as Ollama)
 - Store analysis results in PostgreSQL
 - Browse results through REST API
 - Fully containerized deployment
@@ -15,10 +15,9 @@ AI Event Monitor is an event-driven system for filtering incoming messages using
 ## Components
 
 - **API** — receives incoming messages and exposes REST endpoints for results.
-- **Analyzer** — evaluates messages using the configured criteria and local LLM.
+- **Analyzer** — evaluates messages using the configured criteria and the configured LLM provider.
 - **History** — stores completed analysis results in PostgreSQL.
 - **Kafka** — provides asynchronous communication between services.
-- **Ollama** — runs the local LLM used for classification.
 
 ## How It Works
 
@@ -58,12 +57,17 @@ Match messages related to:
 
 ## Tech Stack
 
-Python 3.13 • FastAPI • FastStream • Apache Kafka • PostgreSQL • SQLAlchemy • Alembic • PydanticAI • Ollama • Docker Compose
+Python 3.13 • FastAPI • FastStream • Apache Kafka • PostgreSQL • SQLAlchemy • Alembic • PydanticAI • Docker Compose
 
 ## Quick Start
 
 ```bash
 cp .env.example .env
+```
+Set `LLM_PROVIDER`, `LLM_MODEL`, and the matching API key (e.g. `ANTHROPIC_API_KEY`) in `.env`.
+To use a self-hosted OpenAI-compatible endpoint instead (e.g. a local Ollama instance running outside this compose setup), set `LLM_BASE_URL` instead of a hosted provider's API key.
+
+```bash
 docker compose up
 ```
 Swagger UI will be available at http://localhost:8000/docs
