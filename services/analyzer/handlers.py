@@ -6,11 +6,9 @@ from sqlalchemy import select
 from shared.db.session import Session
 from shared.db.tables import Criterion
 from shared.kafka import Topic, broker
-from shared.models.events import AnalysisCompleted, MessageReceived
+from shared.models.events import AnalysisCompleted, MatchResult, MessageReceived
 
 from .llm import analyze
-
-NO_ACTIVE_CRITERIA_REASON = "No active criteria to evaluate against."
 
 
 @broker.subscriber(
@@ -33,10 +31,7 @@ async def handle_message(message: MessageReceived) -> AnalysisCompleted:
             event_id=message.event_id,
             source=message.source,
             text=message.text,
-            criterion_id=None,
-            criterion_name=None,
-            criterion_description=None,
-            reason=NO_ACTIVE_CRITERIA_REASON,
+            matches=[],
             analyzed_at=datetime.now(UTC),
         )
 
@@ -46,19 +41,22 @@ async def handle_message(message: MessageReceived) -> AnalysisCompleted:
         f"Analysis completed (event_id={message.event_id}) in {(datetime.now(UTC) - start_time).total_seconds():.2f} seconds",
     )
 
-    matched_criterion = next(
-        (c for c in criteria if c.id == result.criterion_id), None
-    )
+    criteria_by_id = {c.id: c for c in criteria}
+    matches = [
+        MatchResult(
+            criterion_id=match.criterion_id,
+            criterion_name=criteria_by_id[match.criterion_id].name,
+            criterion_description=criteria_by_id[match.criterion_id].description,
+            confidence=match.confidence,
+            reason=match.reason,
+        )
+        for match in result.matches
+    ]
 
     return AnalysisCompleted(
         event_id=message.event_id,
         source=message.source,
         text=message.text,
-        criterion_id=matched_criterion.id if matched_criterion else None,
-        criterion_name=matched_criterion.name if matched_criterion else None,
-        criterion_description=(
-            matched_criterion.description if matched_criterion else None
-        ),
-        reason=result.reason,
+        matches=matches,
         analyzed_at=datetime.now(UTC),
     )

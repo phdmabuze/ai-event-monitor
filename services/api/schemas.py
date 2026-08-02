@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
@@ -25,15 +26,22 @@ class UpdateCriterionRequest(BaseModel):
     is_active: bool | None = None
 
 
+class MatchResponse(BaseModel):
+    criterion_id: int
+    criterion_name: str
+    criterion_description: str
+    confidence: Literal["high", "low"]
+    reason: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class AnalysisResultResponse(BaseModel):
     id: int
     event_id: UUID
     source: str
     text: str
-    criterion_id: int | None
-    criterion_name: str | None
-    criterion_description: str | None
-    reason: str
+    matches: list[MatchResponse]
     analyzed_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

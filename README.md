@@ -29,9 +29,9 @@ AI Event Monitor is an event-driven system for filtering incoming messages using
 
 2. External services send messages from different sources through a unified REST API endpoint (`POST /api/messages`). The API publishes incoming messages to Kafka for asynchronous processing.
 
-3. The **Analyzer service** consumes messages from Kafka, loads the currently active criteria from PostgreSQL, and asks the LLM which single criterion (if any) the message best matches.
+3. The **Analyzer service** consumes messages from Kafka, loads the currently active criteria from PostgreSQL, and asks the LLM which criteria (zero, one, or several) the message matches, each with a `confidence` of `"high"` or `"low"`.
 
-4. Analysis results are published back to Kafka. The **History service** consumes completed analysis events and stores them in PostgreSQL, along with a snapshot of the matched criterion's name/description at the time of the match (so later edits or deletions of a criterion don't rewrite history).
+4. Analysis results are published back to Kafka. The **History service** consumes completed analysis events and stores them in PostgreSQL, along with a snapshot of each matched criterion's name/description at the time of the match (so later edits or deletions of a criterion don't rewrite history).
 
 5. Users can retrieve processed messages and their analysis results through the REST API endpoint (`GET /api/analysis-results`, optionally filtered by `criteria_ids`):
 ```json
@@ -39,18 +39,20 @@ AI Event Monitor is an event-driven system for filtering incoming messages using
   {
     "source": "telegram",
     "text": "Hiring: Python Backend Developer (FastAPI, PostgreSQL). Remote position. Experience with async Python required.",
-    "criterion_id": 1,
-    "criterion_name": "Python backend",
-    "criterion_description": "Jobs, freelance, FastAPI/Django/PostgreSQL, remote work.",
-    "reason": "The message describes a remote Python developer position requiring FastAPI and PostgreSQL experience."
+    "matches": [
+      {
+        "criterion_id": 1,
+        "criterion_name": "Python backend",
+        "criterion_description": "Jobs, freelance, FastAPI/Django/PostgreSQL, remote work.",
+        "confidence": "high",
+        "reason": "The message describes a remote Python developer position requiring FastAPI and PostgreSQL experience."
+      }
+    ]
   },
   {
     "source": "telegram",
     "text": "Looking for a Frontend Developer to join our team. Strong experience with React, TypeScript, and modern UI development is required.",
-    "criterion_id": null,
-    "criterion_name": null,
-    "criterion_description": null,
-    "reason": "The message is about frontend development and doesn't match any of the configured criteria."
+    "matches": []
   }
 ]
 ```

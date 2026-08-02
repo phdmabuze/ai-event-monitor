@@ -1,6 +1,6 @@
 from datetime import datetime
 from uuid import UUID
-from typing import Any
+from typing import Any, Literal
 from pydantic import BaseModel, Field
 
 
@@ -12,12 +12,17 @@ class MessageReceived(BaseModel):
     occurred_at: datetime
 
 
+class MatchResult(BaseModel):
+    criterion_id: int
+    criterion_name: str
+    criterion_description: str
+    confidence: Literal["high", "low"]
+    reason: str
+
+
 class AnalysisCompleted(BaseModel):
     event_id: UUID
     source: str
     text: str
-    criterion_id: int | None
-    criterion_name: str | None
-    criterion_description: str | None
-    reason: str
+    matches: list[MatchResult]
     analyzed_at: datetime

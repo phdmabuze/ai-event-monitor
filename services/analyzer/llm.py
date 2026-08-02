@@ -32,14 +32,19 @@ agent = Agent(
 
 
 @agent.output_validator
-def validate_criterion_id(
-    ctx: RunContext[frozenset[int]], data: LLMResult
-) -> LLMResult:
-    if data.criterion_id is not None and data.criterion_id not in ctx.deps:
-        raise ModelRetry(
-            f"criterion_id must be one of {sorted(ctx.deps)} or null, "
-            f"got {data.criterion_id}"
-        )
+def validate_matches(ctx: RunContext[frozenset[int]], data: LLMResult) -> LLMResult:
+    seen: set[int] = set()
+    for match in data.matches:
+        if match.criterion_id not in ctx.deps:
+            raise ModelRetry(
+                f"criterion_id must be one of {sorted(ctx.deps)}, "
+                f"got {match.criterion_id}"
+            )
+        if match.criterion_id in seen:
+            raise ModelRetry(
+                f"criterion_id {match.criterion_id} was returned more than once"
+            )
+        seen.add(match.criterion_id)
     return data
 
 
