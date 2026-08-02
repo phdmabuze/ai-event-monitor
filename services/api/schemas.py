@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CriterionResponse(BaseModel):
@@ -50,3 +50,23 @@ class AnalysisResultResponse(BaseModel):
 class SendMessageRequest(BaseModel):
     source: str
     text: str
+
+
+class EvalCaseMatchResponse(BaseModel):
+    criterion_id: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class EvalCaseResponse(BaseModel):
+    id: int
+    text: str
+    matches: list[EvalCaseMatchResponse]
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CreateEvalCaseRequest(BaseModel):
+    text: str
+    criterion_ids: list[int] = Field(default_factory=list)

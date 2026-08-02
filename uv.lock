@@ -20,6 +20,7 @@ dependencies = [
     { name = "faststream", extra = ["cli", "kafka"] },
     { name = "greenlet" },
     { name = "pydantic-ai" },
+    { name = "pydantic-evals" },
     { name = "pydantic-settings" },
     { name = "sqlalchemy" },
 ]
@@ -38,6 +39,7 @@ requires-dist = [
     { name = "faststream", extras = ["cli", "kafka"], specifier = ">=0.7.1" },
     { name = "greenlet", specifier = ">=3.5.3" },
     { name = "pydantic-ai", specifier = ">=2.5.0" },
+    { name = "pydantic-evals", specifier = ">=2.5.0" },
     { name = "pydantic-settings", specifier = ">=2.14.2" },
     { name = "sqlalchemy", specifier = ">=2.0.51" },
 ]

@@ -6,6 +6,7 @@ from shared.kafka import broker
 
 from .routers.analysis_results import router as analysis_router
 from .routers.criteria import router as criteria_router
+from .routers.eval_cases import router as eval_cases_router
 from .routers.messages import router as messages_router
 
 @asynccontextmanager
@@ -23,4 +24,5 @@ api_router = APIRouter(prefix="/api")
 api_router.include_router(messages_router)
 api_router.include_router(analysis_router)
 api_router.include_router(criteria_router)
+api_router.include_router(eval_cases_router)
 app.include_router(api_router)
