@@ -57,9 +57,27 @@ AI Event Monitor is an event-driven system for filtering incoming messages using
 ]
 ```
 
+## Evals
+
+Because the Analyzer sends every active criterion to the LLM in a single call, editing one criterion's wording can silently change how messages are classified against *other* criteria too. Evals are a regression check against that: a growing set of human-confirmed examples (message + the criteria it should match) that gets replayed against the current criteria/prompt whenever something changes.
+
+Add an example through `POST /api/eval-cases` — `criterion_ids` is the set of criteria the message is expected to match (empty list if it should match none):
+
+```json
+{"text": "Hiring: Python Backend Developer (FastAPI, PostgreSQL). Remote position.", "criterion_ids": [1]}
+```
+
+Existing cases can be listed (`GET /api/eval-cases`) or removed (`DELETE /api/eval-cases/{id}`) — e.g. once a case's expectation no longer matches an intentional change to a criterion.
+
+Run the eval suite with:
+```bash
+uv run python -m scripts.run_evals
+```
+This replays every stored case through the current criteria and LLM (each case 3 times, to smooth out LLM sampling noise), then prints a report comparing the result to the previous run — not just pass/fail for this run, but what got better or worse since the last time you ran it. Each run's report is saved to PostgreSQL so the next run has something to diff against.
+
 ## Tech Stack
 
-Python 3.13 • FastAPI • FastStream • Apache Kafka • PostgreSQL • SQLAlchemy • Alembic • PydanticAI • Docker Compose
+Python 3.13 • FastAPI • FastStream • Apache Kafka • PostgreSQL • SQLAlchemy • Alembic • PydanticAI • pydantic-evals • Docker Compose
 
 ## Quick Start
 
