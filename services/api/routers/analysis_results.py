@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
@@ -17,6 +17,7 @@ router = APIRouter(prefix="/analysis-results", tags=["analysis-results"])
 async def get_analysis_results(
     session: AsyncSession = Depends(get_session),
     criteria_ids: Annotated[list[int] | None, Query()] = None,
+    confidence: Literal["high", "low"] | None = None,
 ) -> list[AnalysisResult]:
     query = (
         select(AnalysisResult)
@@ -29,6 +30,11 @@ async def get_analysis_results(
             AnalysisResult.matches.any(
                 AnalysisResultMatch.criterion_id.in_(criteria_ids)
             )
+        )
+
+    if confidence is not None:
+        query = query.where(
+            AnalysisResult.matches.any(AnalysisResultMatch.confidence == confidence)
         )
 
     result = await session.execute(query)

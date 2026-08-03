@@ -33,7 +33,7 @@ AI Event Monitor is an event-driven system for filtering incoming messages using
 
 4. Analysis results are published back to Kafka. The **History service** consumes completed analysis events and stores them in PostgreSQL, along with a snapshot of each matched criterion's name/description at the time of the match (so later edits or deletions of a criterion don't rewrite history).
 
-5. Users can retrieve processed messages and their analysis results through the REST API endpoint (`GET /api/analysis-results`, optionally filtered by `criteria_ids`):
+5. Users can retrieve processed messages and their analysis results through the REST API endpoint (`GET /api/analysis-results`, optionally filtered by `criteria_ids` and/or `confidence=high|low`):
 ```json
 [
   {
